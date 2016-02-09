@@ -50,6 +50,7 @@
 			Server.bind('open', function() {
                 document.getElementById("cntBtn").disabled = true;
 				log( "Connected." );
+				send("Hello");
 			});
 
 			//OH NOES! Disconnection occurred.
@@ -75,6 +76,7 @@
         Server port: <input type='text' id='port' name='port'>
         <button type="button" id='cntBtn' onclick="connect();">Connect</button>
 		<textarea id='log' name='log' readonly='readonly'></textarea><br/>
+		<input type='text' id='message' name='message' />
 	</div>
 </body>
 

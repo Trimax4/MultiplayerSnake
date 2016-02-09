@@ -7,6 +7,9 @@
 
 using namespace std;
 
+
+int player1Score = 0;
+int player2Score = 0;
 webSocket server;
 
 /* called when a client connects */
@@ -36,18 +39,23 @@ void closeHandler(int clientID){
 
 /* called when a client sends a message to the server */
 void messageHandler(int clientID, string message){
-    /*
 	ostringstream os;
     os << "Player " << clientID << " says: " << message;
+
+	if (message == "score")
+	{
+		player1Score++;
+		player2Score++;
+		os << "Score increase" << player1Score << "     " << player2Score;
+	}
 
     vector<int> clientIDs = server.getClientIDs();
     for (int i = 0; i < clientIDs.size(); i++){
         if (clientIDs[i] != clientID)
             server.wsSend(clientIDs[i], os.str());
     }
-	*/
-
 }
+
 
 /* called once per select() loop */
 void periodicHandler(){
@@ -77,6 +85,7 @@ int main(int argc, char *argv[]){
     server.setOpenHandler(openHandler);
     server.setCloseHandler(closeHandler);
     server.setMessageHandler(messageHandler);
+	
     //server.setPeriodicHandler(periodicHandler);
 
     /* start the chatroom server, listen to ip '127.0.0.1' and port '8000' */
