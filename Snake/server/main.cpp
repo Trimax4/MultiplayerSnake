@@ -10,19 +10,34 @@ using namespace std;
 
 int player1Score = 0;
 int player2Score = 0;
+std::string Player1ID;
+std::string Player2ID;
 webSocket server;
 
 /* called when a client connects */
 void openHandler(int clientID){
-    ostringstream os;
-    os << "Player " << clientID << " has joined.";
+	ostringstream os;
+	os << "Player " << clientID << " has joined.";
 
-    vector<int> clientIDs = server.getClientIDs();
-    for (int i = 0; i < clientIDs.size(); i++){
-        if (clientIDs[i] != clientID)
-            server.wsSend(clientIDs[i], os.str());
-    }
-    server.wsSend(clientID, "Welcome!");
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++){
+		if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], os.str());
+	}
+
+	server.wsSend(clientID, "Welcome!");
+
+	// send client ids to all connected clients
+	//ostringstream os2;
+	ostringstream osArray[2];
+	for (int i = 0; i < clientIDs.size(); i++){
+		osArray[i] << "__" << clientIDs[i] << " " << clientIDs[i];
+	}
+	for (int j = 0; j < clientIDs.size(); j++){
+		for (int k = 0; k < clientIDs.size(); k++){
+			server.wsSend(k, osArray[j].str());
+		}
+	}
 }
 
 /* called when a client disconnects */
@@ -40,7 +55,15 @@ void closeHandler(int clientID){
 /* called when a client sends a message to the server */
 void messageHandler(int clientID, string message){
 	ostringstream os;
-    os << "Player " << clientID << " says: " << message;
+	os << "Player " << clientID << " says: " << message << endl;
+
+	if (message.substr(2).compare("1ID"))
+	{
+		Player1ID = message;
+		os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
+		server.wsSend(1,Player1ID);
+		//server.wsSend(2, Player1ID);
+	}
 
 	if (message == "score")
 	{
@@ -49,11 +72,11 @@ void messageHandler(int clientID, string message){
 		os << "Score increase" << player1Score << "     " << player2Score;
 	}
 
-    vector<int> clientIDs = server.getClientIDs();
-    for (int i = 0; i < clientIDs.size(); i++){
-        if (clientIDs[i] != clientID)
-            server.wsSend(clientIDs[i], os.str());
-    }
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++){
+		if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], os.str());
+	}
 }
 
 
@@ -73,6 +96,7 @@ void periodicHandler(){
 
         next = time(NULL) + 10;
     }
+
 }
 
 int main(int argc, char *argv[]){

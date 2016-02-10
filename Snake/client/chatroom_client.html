@@ -10,6 +10,8 @@
 		#body {max-width:800px;margin:auto}
 		#log {width:100%;height:50px}
 		#message {width:100%;line-height:20px}
+		#p1ID {line-height:20px}
+		#p2ID {line-height:20px}
 	</style>
 
 	<!-- Lets make a simple snake game -->
@@ -61,10 +63,48 @@
 
 			//Log any messages sent from server
 			Server.bind('message', function( payload ) {
-				log( payload );
+				//log(payload.substring(0, 2));
+				//log(payload.substring(2, 3));
+				//log(payload.substring(4, 5));
+				if(payload.substring(0, 2) == '__'){
+					if(payload.substring(2, 3) == '0'){
+						document.getElementById('p1ID').value = payload.substring(4, 5);
+					}
+					else if(payload.substring(2, 3) == '1'){
+						document.getElementById('p2ID').value = payload.substring(4, 5);
+					}
+				}
+				else{
+					log( payload );
+				}
 			});
 
+
+
 			Server.connect();
+        }
+
+        function setPlayer1ID()
+        {
+        	send("1ID"+document.getElementById('p1ID').value);
+        	Server.bind('message', function( payload ) {
+				//log(payload.substring(0, 2));
+				//log(payload.substring(2, 3));
+				//log(payload.substring(4, 5));
+				log(payload +"Logged");
+				if(payload.substring(0, 2) == '1ID')
+					{
+						log(payload +" IDSET");
+						payload.replace('1ID','')
+						document.getElementById('p1ID').value = payload;
+					}
+				if(payload.substring(0, 2) == '2ID')
+					{
+						payload.replace('2ID','')
+						document.getElementById('p2ID').value = payload;
+					}
+
+			});
         }
 
 	</script>
@@ -72,9 +112,12 @@
 
 <body>
 	<div id='body'>
-        Server ip: <input type='text' id='ip' name='ip'>
+	Server ip: <input type='text' id='ip' name='ip'>
         Server port: <input type='text' id='port' name='port'>
-        <button type="button" id='cntBtn' onclick="connect();">Connect</button>
+        <button type="button" id='cntBtn' onclick="connect();">Connect</button><br>
+        Player 1 id: <input type='text' id='p1ID' name='p1ID'></input>
+        <button type="button" id='SetPlayer1NameButton' onclick="setPlayer1ID();">SetID</button> 
+        Player 2 id: <input type='text' id='p2ID' name='p2ID'></input>
 		<textarea id='log' name='log' readonly='readonly'></textarea><br/>
 		<input type='text' id='message' name='message' />
 	</div>
