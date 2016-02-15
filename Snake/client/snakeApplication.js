@@ -1,4 +1,4 @@
-$(document).ready(function(){
+var snakeApplication = function(){
 	//Canvas stuff
 	var canvas = $("#canvas")[0];
 	var ctx = canvas.getContext("2d");
@@ -12,17 +12,18 @@ $(document).ready(function(){
 	var food;
 	var score;
 	var score2;
-	
+
 	//Lets create the snake now
 	var snake_array; //an array of cells to make up the snake
 	var snake_array2;
-	function init()
+	
+	this.init = function()
 	{
 		d = "down"; //default direction
 		d2 = "down";
-		create_snake();
-		create_snake2();
-		create_food(); //Now we can see the food particle
+		this.create_snake();
+		this.create_snake2();
+		this.create_food(); //Now we can see the food particle
 		//finally lets display the score
 		score = 0;
 		score2 = 0;
@@ -30,11 +31,10 @@ $(document).ready(function(){
 		//Lets move the snake now using a timer which will trigger the paint function
 		//every 60ms
 		if(typeof game_loop != "undefined") clearInterval(game_loop);
-		game_loop = setInterval(paint, 200);
+		game_loop = setInterval(this.paint, 200);
 	}
-	init();
 	
-	function create_snake()
+	this.create_snake = function()
 	{
 		var length = 15; //Length of the snake
 		snake_array = []; //Empty array to start with
@@ -45,7 +45,7 @@ $(document).ready(function(){
 		}
 	}
 
-	function create_snake2()
+	this.create_snake2 = function()
 	{
 		var length = 5; //Length of the snake
 		snake_array2 = []; //Empty array to start with
@@ -57,7 +57,7 @@ $(document).ready(function(){
 	}
 	
 	//Lets create the food now
-	function create_food()
+	this.create_food = function()
 	{
 		food = {
 			x: Math.round(Math.random()*(w-cw)/cw), 
@@ -68,7 +68,7 @@ $(document).ready(function(){
 	}
 	
 	//Lets paint the snake now
-	function paint()
+	this.paint = function()
 	{
 		//To avoid the snake trail we need to paint the BG on every frame
 		//Lets paint the canvas now
@@ -105,7 +105,7 @@ $(document).ready(function(){
 		if(nx == -1 || nx == w/cw || ny == -1 || ny == h/cw || check_collision(nx, ny, snake_array))
 		{
 			//restart game
-			init();
+			this.init();
 			//Lets organize the code a bit now.
 			return;
 		}
@@ -118,7 +118,7 @@ $(document).ready(function(){
 		}
 		if(check_collision_array(snake_array, snake_array2))
 		{
-			init();
+			this.init();
 			return;
 		}
 		
@@ -181,21 +181,21 @@ $(document).ready(function(){
 	}
 	
 	//Lets first create a generic function to paint cells
-	function paint_cell_blue(x, y)
+	function paint_cell_blue (x, y)
 	{
 		ctx.fillStyle = "blue";
 		ctx.fillRect(x*cw, y*cw, cw, cw);
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cw, y*cw, cw, cw);
 	}
-	function paint_cell_red(x, y)
+	function paint_cell_red  (x, y)
 	{
 		ctx.fillStyle = "red";
 		ctx.fillRect(x*cw, y*cw, cw, cw);
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cw, y*cw, cw, cw);
 	}
-	function paint_cell_yellow(x, y)
+	function paint_cell_yellow (x, y)
 	{
 		ctx.fillStyle = "yellow";
 		ctx.fillRect(x*cw, y*cw, cw, cw);
@@ -216,7 +216,7 @@ $(document).ready(function(){
 		return false;
 	}
 
-	function check_collision_array(array, array2)
+	function check_collision_array (array, array2)
 	{
 		for(var i = 0; i < array.length; i++)
 		{
@@ -248,4 +248,4 @@ $(document).ready(function(){
 		else if(key == "83" && d2 != "up") d2 = "down";
 	})
 	
-})
+}

@@ -25,10 +25,12 @@ void openHandler(int clientID){
 			server.wsSend(clientIDs[i], os.str());
 	}
 
+
 	server.wsSend(clientID, "Welcome!");
 
 	// send client ids to all connected clients
 	//ostringstream os2;
+	/*
 	ostringstream osArray[2];
 	for (int i = 0; i < clientIDs.size(); i++){
 		osArray[i] << "__" << clientIDs[i] << " " << clientIDs[i];
@@ -38,6 +40,7 @@ void openHandler(int clientID){
 			server.wsSend(k, osArray[j].str());
 		}
 	}
+	*/
 }
 
 /* called when a client disconnects */
@@ -55,16 +58,35 @@ void closeHandler(int clientID){
 /* called when a client sends a message to the server */
 void messageHandler(int clientID, string message){
 	ostringstream os;
-	os << "Player " << clientID << " says: " << message << endl;
-
 	if (message.substr(2).compare("1ID"))
 	{
 		Player1ID = message;
-		os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
-		server.wsSend(1,Player1ID);
-		//server.wsSend(2, Player1ID);
+		//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			if (clientIDs[i] != clientID)
+				server.wsSend(clientIDs[i], Player1ID);
+		}
+	}
+	else
+	{
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			if (clientIDs[i] != clientID)
+				server.wsSend(clientIDs[i], os.str());
+		}
 	}
 
+	if (message.substr(2).compare("2ID"))
+	{
+		Player2ID = message;
+		//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			if (clientIDs[i] != clientID)
+				server.wsSend(clientIDs[i], Player2ID);
+		}
+	}
 	if (message == "score")
 	{
 		player1Score++;
@@ -72,11 +94,7 @@ void messageHandler(int clientID, string message){
 		os << "Score increase" << player1Score << "     " << player2Score;
 	}
 
-	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++){
-		if (clientIDs[i] != clientID)
-			server.wsSend(clientIDs[i], os.str());
-	}
+	
 }
 
 
