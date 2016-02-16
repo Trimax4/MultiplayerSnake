@@ -44,6 +44,14 @@ void sendToAll(int clientID, string message)
 			server.wsSend(clientIDs[i], message);
 	}
 }
+void sendToAll(string message)
+{
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++) {
+		//if (clientIDs[i] != clientID)
+		server.wsSend(clientIDs[i], message);
+	}
+}
 /* called when a client connects */
 void openHandler(int clientID) {
 	ostringstream os;
