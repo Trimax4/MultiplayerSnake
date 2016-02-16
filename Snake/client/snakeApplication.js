@@ -12,18 +12,21 @@ var snakeApplication = function(){
 	var food;
 	var score;
 	var score2;
+	var Player1Name = "Player1";
+	var Player2Name = "Player2";
 
 	//Lets create the snake now
 	var snake_array; //an array of cells to make up the snake
 	var snake_array2;
 	
+
 	this.init = function()
 	{
 		d = "down"; //default direction
 		d2 = "down";
 		this.create_snake();
 		this.create_snake2();
-		this.create_food(); //Now we can see the food particle
+		create_food(); //Now we can see the food particle
 		//finally lets display the score
 		score = 0;
 		score2 = 0;
@@ -57,7 +60,7 @@ var snakeApplication = function(){
 	}
 	
 	//Lets create the food now
-	this.create_food = function()
+	function create_food()
 	{
 		food = {
 			x: Math.round(Math.random()*(w-cw)/cw), 
@@ -67,6 +70,65 @@ var snakeApplication = function(){
 		//Because there are 45(450/10) positions accross the rows and columns
 	}
 	
+	this.setFoodLocation = function(x, y)
+	{
+		food = {x,y};
+	}
+
+	this.setSnake1Direction = function(direction)
+	{
+		d = direction;
+	}
+	
+	this.setSnake2Direction = function(direction)
+	{
+		d2 = direction;
+	}
+
+	this.getSnake1Direction = function()
+	{
+		return d;
+	}
+	this.getSnake2Direction = function()
+	{
+		return d2;
+	}
+	this.setPlayer1Score = function(new_score)
+	{
+		score = new_score;
+	}
+
+	this.setPlayer2Score = function(new_score)
+	{
+		score2 = new_score;
+	}
+
+	this.endGame = function()
+	{
+
+	}
+	this.setPlayer1Name = function(name)
+	{
+		Player1Name = name;
+	}
+	this.setPlayer2Name = function(name)
+	{
+		Player2Name = name;
+	}
+	this.getWidth = function()
+	{
+		return w;
+	}
+	this.getCellWidth = function()
+	{
+		return cw;
+	}
+	this.getHeight = function()
+	{
+		return h;
+	}
+
+
 	//Lets paint the snake now
 	this.paint = function()
 	{
@@ -76,6 +138,7 @@ var snakeApplication = function(){
 		ctx.fillRect(0, 0, w, h);
 		ctx.strokeStyle = "black";
 		ctx.strokeRect(0, 0, w, h);
+		
 		
 		//The movement code for the snake to come here.
 		//The logic is simple
@@ -97,7 +160,7 @@ var snakeApplication = function(){
 		else if(d2 == "left") nx2--;
 		else if(d2 == "up") ny2--;
 		else if(d2 == "down") ny2++;
-		
+		/*
 		//Lets add the game over clauses now
 		//This will restart the game if the snake hits the wall
 		//Lets add the code for body collision
@@ -112,7 +175,7 @@ var snakeApplication = function(){
 		if(nx2 == -1 || nx2 == w/cw || ny2 == -1 || ny2 == h/cw || check_collision(nx2, ny2, snake_array2))
 		{
 			//restart game
-			init();
+			this.init();
 			//Lets organize the code a bit now.
 			return;
 		}
@@ -121,7 +184,7 @@ var snakeApplication = function(){
 			this.init();
 			return;
 		}
-		
+		*/
 		//Lets write the code to make the snake eat the food
 		//The logic is simple
 		//If the new head position matches with that of the food,
@@ -129,9 +192,9 @@ var snakeApplication = function(){
 		if(nx == food.x && ny == food.y)
 		{
 			var tail = {x: nx, y: ny};
-			score++;
+			//score++;
 			//Create new food
-			create_food();
+			//create_food();
 		}
 		else
 		{
@@ -143,9 +206,9 @@ var snakeApplication = function(){
 		if(nx2 == food.x && ny2 == food.y)
 		{
 			var tail2 = {x: nx2, y: ny2};
-			score2++;
+			//score2++;
 			//Create new food
-			create_food();
+			//create_food();
 		}
 		else
 		{
@@ -162,7 +225,7 @@ var snakeApplication = function(){
 			//Lets paint 10px wide cells
 			paint_cell_blue(c.x, c.y);
 		}
-		
+
 		for(var i = 0; i < snake_array2.length; i++)
 		{
 			var c = snake_array2[i];
@@ -173,8 +236,8 @@ var snakeApplication = function(){
 		//Lets paint the food
 		paint_cell_yellow(food.x, food.y);
 		//Lets paint the score
-		var score_text = "Player1 Score: " + score;
-		var score_text2 = "Player2 Score: " + score2;
+		var score_text =  Player1Name + " Score: " + score;
+		var score_text2 = Player2Name + " Score: " + score2;
 		ctx.fillStyle = "black";
 		ctx.fillText(score_text, 5, h-5);
 		ctx.fillText(score_text2, 100, h-5);
@@ -231,7 +294,7 @@ var snakeApplication = function(){
 		return false;
 	}
 	
-
+/*
 	//Lets add the keyboard controls now
 	$(document).keydown(function(e){
 		var key = e.which;
@@ -247,5 +310,6 @@ var snakeApplication = function(){
 		else if(key == "68" && d2 != "left") d2 = "right";
 		else if(key == "83" && d2 != "up") d2 = "down";
 	})
+*/
 	
 }

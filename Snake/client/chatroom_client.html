@@ -23,8 +23,10 @@
 	<script>
 		var Server;		
 		var Game = new snakeApplication();
-		Game.init();
-		
+		var player1Name;
+		var player2Name;
+		//Game.init();
+
 		function log( text ) {
 			$log = $('#log');
 			//Add text to log
@@ -42,30 +44,44 @@
         function connect(){
             log('Connecting...');
 			Server = new FancyWebSocket('ws://' + document.getElementById('ip').value + ':' + document.getElementById('port').value);
+			
 
 			$('#message').keypress(function(e) {
 				if ( e.keyCode == 13 && this.value ) {
 					log( 'You: ' + this.value );
 					send( this.value );
-
 					$(this).val('');
 				}
+				//The snake is now keyboard controllable
 			});
-
-			$('#message').keypress(function(e) {
-				if ( e.keyCode == 13 && this.value ) {
-					log( "left" );
-					send( this.value );
-
-					$(this).val('');
-				}
+			$(document).keydown(function(e){
+			var key = e.which;
+				if(key == "65") 
+					{
+						send("left");
+						//Game.setSnake2Direction("left");
+					}
+				else if(key == "87") 
+					{
+						send("up");
+						//Game.setSnake2Direction("up");
+					}
+				else if(key == "68") 
+					{
+						send("right");
+						//Game.setSnake2Direction("right");
+					}
+				else if(key == "83") 
+					{
+						send("down");
+						//Game.setSnake2Direction("down");
+					}
 			});
 
 			//Let the user know we're connected
 			Server.bind('open', function() {
                 document.getElementById("cntBtn").disabled = true;
 				log( "Connected." );
-				send("Hello");
 			});
 
 			//OH NOES! Disconnection occurred.
@@ -74,7 +90,7 @@
 				log( "Disconnected." );
 			});
 
-			        	Server.bind('message', function( payload ) {
+			Server.bind('message', function( payload ) {
 				//log(payload.substring(0, 2));
 				//log(payload.substring(2, 3));
 				//log(payload.substring(4, 5));
@@ -82,26 +98,32 @@
 				if(payload.substring(0, 3) == '1ID')
 					{
 						//log(payload +" IDSET");
-						
-						document.getElementById('p1ID').value = payload.replace('1ID','');
+						player1Name = payload.replace('1ID','');
+						document.getElementById('p1ID').value = player1Name;
+
+						Game.setPlayer1Name(payload.replace(player1Name));
 					}
-			});
-
-
-        	Server.bind('message', function( payload ) {
-				//log(payload.substring(0, 2));
-				//log(payload.substring(2, 3));
-				//log(payload.substring(4, 5));
-				//log("Logged" + payload + "Logged" + " sub -> " + payload.substring(0, 3) + "<--string");
-				if(payload.substring(0, 3) == '2ID')
+				else if(payload.substring(0, 3) == '2ID')
 					{
 						//log(payload +" IDSET");
-						
-						document.getElementById('p2ID').value = payload.replace('2ID','');
+						player2Name = payload.replace('2ID','');
+						document.getElementById('p2ID').value = player2Name;
+
+						Game.setPlayer2Name(payload.replace(player2Name));
+					}
+				else if(payload.substring(0, 3) == 'P1D')
+					{
+						log(payload + "player1");
+						var direction = payload.replace('P1D','');
+						Game.setSnake1Direction(direction);
+					}
+				else if(payload.substring(0, 3) == 'P2D')
+					{
+						log(payload + "player2");
+						var direction = payload.replace('P2D','');
+						Game.setSnake2Direction(direction);
 					}
 			});
-
-
 
 			Server.connect();
         }
@@ -118,6 +140,11 @@
 
         }
 
+        function startGame()
+        {
+        	Game.init();
+        }
+
 	</script>
 </head>
 
@@ -131,6 +158,7 @@
         Player 2 id: <input type='text' id='p2ID' name='p2ID'></input>
         <button type="button" id='SetPlayer2NameButton' onclick="setPlayer2ID();">Set2ID</button> 
 		<textarea id='log' name='log' readonly='readonly'></textarea><br/>
+		<button type="button" id='StartGame' onclick="startGame();">Start Game</button> 
 		<input type='text' id='message' name='message' />
 	</div>
 </body>

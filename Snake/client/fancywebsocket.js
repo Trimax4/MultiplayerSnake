@@ -30,7 +30,6 @@ var FancyWebSocket = function(url)
 		this.conn.onopen = function(){dispatch('open',null)}
 	};
 
-
 	this.disconnect = function() {
 		this.conn.close();
 	};

@@ -1,46 +1,112 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <iostream>
 #include <string>
 #include <sstream>
 #include <time.h>
+#include <math.h>
 #include "websocket.h"
 
 using namespace std;
 
 
+
 int player1Score = 0;
 int player2Score = 0;
 std::string Player1ID;
+int clientIDPlayer1;
+bool isFirstClient = true;
 std::string Player2ID;
+int clientIDPlayer2 = 1;
+bool isSecondClient = true;
+
+std::vector<std::pair<int, int>> snake_array1;
+std::vector<std::pair<int, int>> snake_array2;
+//canvas information
+int width = 450;
+int height = 450;
+int cellWidth = 10;
+int nx, ny, nx2, ny2;
+int length = 5;
+string direction;
+string direction2;
+std::pair<int, int> food;
+std::pair<int, int> tail;
+std::pair<int, int> tail2;
+
 webSocket server;
 
+void sendToAll(int clientID, string message)
+{
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++) {
+		//if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], message);
+	}
+}
 /* called when a client connects */
-void openHandler(int clientID){
+void openHandler(int clientID) {
 	ostringstream os;
 	os << "Player " << clientID << " has joined.";
 
+	if (isFirstClient == true)
+	{
+		cout << "client 1 id set" << endl;
+		clientIDPlayer1 = clientID;
+		isFirstClient = false;
+	}
+	else if (isFirstClient == false)
+	{
+		cout << "client 2 id set" << endl;
+		clientIDPlayer2 = clientID;
+		isSecondClient = false;
+	}
+	else if (isSecondClient == false && isFirstClient == false)
+	{
+		os << "server full " << endl;
+	}
+	
+	server.wsSend(clientID, "Welcome!");
 	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++){
+	for (int i = 0; i < clientIDs.size(); i++) {
 		if (clientIDs[i] != clientID)
 			server.wsSend(clientIDs[i], os.str());
 	}
+}
 
-
-	server.wsSend(clientID, "Welcome!");
-
-	// send client ids to all connected clients
-	//ostringstream os2;
-	/*
-	ostringstream osArray[2];
-	for (int i = 0; i < clientIDs.size(); i++){
-		osArray[i] << "__" << clientIDs[i] << " " << clientIDs[i];
+void create_snake1()
+{	
+	for (int i = length - 1; i >= 0; i--)
+	{
+		//This will create a horizontal snake starting from the top left
+		std::pair<int, int> position;// = new std::pair<int, int>();
+		position.first = 10;
+		position.second = i;
+		snake_array1.push_back(position);
 	}
-	for (int j = 0; j < clientIDs.size(); j++){
-		for (int k = 0; k < clientIDs.size(); k++){
-			server.wsSend(k, osArray[j].str());
-		}
+	nx = snake_array1[0].first;
+	ny = snake_array1[0].second;
+}
+void create_snake2()
+{
+	for (int i = length - 1; i >= 0; i--)
+	{
+		//This will create a horizontal snake starting from the top left
+		std::pair<int, int> position;// = new std::pair<int, int>();
+		position.first = 30;
+		position.second = i;
+		snake_array2.push_back(position);
 	}
-	*/
+	nx2 = snake_array2[0].first;
+	ny2 = snake_array2[0].second;
+}
+
+void create_food()
+{
+	food.first = round(rand()*(width - cellWidth) / cellWidth);
+	food.second = round(rand()*(height - cellWidth) / cellWidth);
+	//This will create a cell with x/y between 0-44
+	//Because there are 45(450/10) positions accross the rows and columns
 }
 
 /* called when a client disconnects */
@@ -55,46 +121,170 @@ void closeHandler(int clientID){
     }
 }
 
-/* called when a client sends a message to the server */
-void messageHandler(int clientID, string message){
-	ostringstream os;
-	if (message.substr(2).compare("1ID"))
+void snakeMovementLoop()
+{
+	if (direction.compare ("right")) nx++;
+	else if (direction.compare( "left")) nx--;
+	else if (direction.compare( "up")) ny--;
+	else if (direction.compare("down")) ny++ ;
+
+	if (direction2.compare("right")) nx2++;
+	else if (direction2.compare("left")) nx2--;
+	else if (direction2.compare("up")) ny2--;
+	else if (direction2.compare("down")) ny2++;
+}
+
+void foodCollisionCheck()
+{
+	//Lets write the code to make the snake eat the food
+	//The logic is simple
+	//If the new head position matches with that of the food,
+	//Create a new head instead of moving the tail
+	if (nx == food.first && ny == food.second)
 	{
-		Player1ID = message;
-		//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
-		vector<int> clientIDs = server.getClientIDs();
-		for (int i = 0; i < clientIDs.size(); i++) {
-			if (clientIDs[i] != clientID)
-				server.wsSend(clientIDs[i], Player1ID);
-		}
+		std::pair<int, int> tail;
+		tail.first = nx;
+		tail.second = ny;
+		player1Score++;
+		//Create new food
+		create_food();
 	}
 	else
 	{
-		vector<int> clientIDs = server.getClientIDs();
+		tail = snake_array1.back();
+		snake_array1.pop_back();//pops out the last cell
+		tail.first = nx; tail.second = ny;
+	}
+	if (nx2 == food.first && ny2 == food.second)
+	{
+		std::pair<int, int> tail2;
+		tail2.first = nx2;
+		tail2.second = ny2;
+		player2Score++;
+		//Create new food
+		create_food();
+	}
+	else
+	{
+		tail2 = snake_array2.back();
+		snake_array2.pop_back();//pops out the last cell
+		tail2.first = nx2; tail2.second = ny2;
+	}
+	//The snake can now eat the food.
+
+	snake_array1.insert(snake_array1.begin(),tail); //puts back the tail as the first cell
+	snake_array2.insert(snake_array2.begin(), tail2);
+}
+
+bool check_collision(int x, int y, std::vector<std::pair<int, int>> array)
+{
+	//This function will check if the provided x/y coordinates exist
+	//in an array of cells or not
+	for (int i = 0; i < array.size(); i++)
+	{
+		if (array[i].first == x && array[i].second == y)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool check_collision_array(std::vector<std::pair<int, int>> array, std::vector<std::pair<int, int>> array2)
+{
+	for (int i = 0; i < array.size(); i++)
+	{
+		for (int k = 0; k < array2.size(); k++)
+		{
+			if (array[i].first == array2[k].first  && array[i].second == array2[k].second)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+bool gameOverChecker()
+{
+	vector<int> clientIDs = server.getClientIDs();
+
+	if (nx == -1 || nx == width / cellWidth || ny == -1 || ny == height / cellWidth || check_collision(nx, ny, snake_array1))
+	{
+		return true;
+	}
+	if (nx2 == -1 || nx2 == width / cellWidth || ny2 == -1 || ny2 == height / cellWidth || check_collision(nx2, ny2, snake_array2))
+	{
+		return true;
+	}
+	if (check_collision_array(snake_array1, snake_array2))
+	{
+		return true;
+	}
+	return false;
+}
+
+/* called when a client sends a message to the server */
+void messageHandler(int clientID, string message){
+	ostringstream os;
+	os << clientID << "Message in " << message << endl;
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++) {
+		//if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], os.str());
+	}
+	cout << clientID  << "    < = current client || " << clientIDPlayer1 << " < player 1 ID and player 2 id > " << clientIDPlayer2 << endl;
+
+	if (clientID == clientIDPlayer1)
+	{
+		os << "direction change p1" << endl ;
+		if ((message.compare("left") == 0 && direction.compare("right") != 0) || 
+			(message.compare("down") == 0 && direction.compare("up") != 0) || 
+			(message.compare("up") == 0 && direction.compare("down") != 0) || 
+			(message.compare("right") == 0) && direction.compare("left") != 0)
+		{
+			direction2 = message;
+			sendToAll(clientID, "P1D" + message);
+		}
+	}
+	else if (clientID == clientIDPlayer2)
+	{
+		os << "direction change p2" << endl;
+		if ((message.compare("left") == 0 && direction.compare("right") != 0) ||
+			(message.compare("down") == 0 && direction.compare("up") != 0) ||
+			(message.compare("up") == 0 && direction.compare("down") != 0) ||
+			(message.compare("right") == 0) && direction.compare("left") != 0)
+		{
+			direction2 = message;
+
+			sendToAll(clientID, "P2D" + message);
+		}
+	}
+
+	if (message.size() >= 3)
+	{
+		if (message.substr(2).compare("1ID"))
+		{
+			Player1ID = message;
+			//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
+			sendToAll(clientID, Player1ID);
+		}
+
+
+		if (message.substr(2).compare("2ID"))
+		{
+			Player2ID = message;
+			//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
+			sendToAll(clientID, Player2ID);
+		}
+	}
+	
+		//vector<int> clientIDs = server.getClientIDs();
 		for (int i = 0; i < clientIDs.size(); i++) {
-			if (clientIDs[i] != clientID)
+			//if (clientIDs[i] != clientID)
 				server.wsSend(clientIDs[i], os.str());
 		}
-	}
-
-	if (message.substr(2).compare("2ID"))
-	{
-		Player2ID = message;
-		//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
-		vector<int> clientIDs = server.getClientIDs();
-		for (int i = 0; i < clientIDs.size(); i++) {
-			if (clientIDs[i] != clientID)
-				server.wsSend(clientIDs[i], Player2ID);
-		}
-	}
-	if (message == "score")
-	{
-		player1Score++;
-		player2Score++;
-		os << "Score increase" << player1Score << "     " << player2Score;
-	}
-
-	
 }
 
 
