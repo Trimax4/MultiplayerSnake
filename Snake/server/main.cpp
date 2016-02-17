@@ -20,6 +20,9 @@ std::string Player2ID;
 int clientIDPlayer2 = 1;
 bool isSecondClient = true;
 
+bool isPlayer1Ready = false;
+bool isPlayer2Ready = false;
+
 std::vector<std::pair<int, int>> snake_array1;
 std::vector<std::pair<int, int>> snake_array2;
 //canvas information
@@ -75,6 +78,25 @@ void openHandler(int clientID) {
 	}
 	
 	server.wsSend(clientID, "Welcome!");
+	vector<int> clientIDs = server.getClientIDs();
+	for (int i = 0; i < clientIDs.size(); i++) {
+		if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], os.str());
+	}
+}
+
+void readyUp(int clientID)
+{
+	ostringstream os;
+	os << "Player " << clientID << " is Ready.";
+	if (clientID == clientIDPlayer1 && isPlayer1Ready == false)
+	{
+		isPlayer1Ready = true;
+	}
+	else if (clientID == clientIDPlayer2 && isPlayer2Ready == false)
+	{
+		isPlayer2Ready = true;
+	}
 	vector<int> clientIDs = server.getClientIDs();
 	for (int i = 0; i < clientIDs.size(); i++) {
 		if (clientIDs[i] != clientID)
