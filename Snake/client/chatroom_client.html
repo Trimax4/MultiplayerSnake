@@ -27,6 +27,7 @@
 		var player2Name;
 		var player1Ready = false;
 		var player2Ready = false;
+		var connected = false;
 		//Game.init();
 		var playerID;
 
@@ -85,12 +86,14 @@
 			Server.bind('open', function() {
                 document.getElementById("cntBtn").disabled = true;
 				log( "Connected." );
+				connected = true;
 			});
 
 			//OH NOES! Disconnection occurred.
 			Server.bind('close', function( data ) {
                 document.getElementById("cntBtn").disabled = false;
 				log( "Disconnected." );
+				connected = false;
 			});
 
 			Server.bind('message', function( payload ) {
@@ -187,8 +190,15 @@
 
         function startGame()
         {
-        	send('READY'); 
-        	log('Ready: ' + playerID);
+        	if(connected)
+        	{
+        		send('READY'); 
+        		log('Ready: ' + playerID);
+        	}
+        	else
+        	{
+        		log('Not connected');
+        	}
         }
 
 	</script>
@@ -204,7 +214,7 @@
         Player 2 id: <input type='text' id='p2ID' name='p2ID'></input>
         <button type="button" id='SetPlayer2NameButton' onclick="setPlayer2ID();">Set2ID</button> 
 		<textarea id='log' name='log' readonly='readonly'></textarea><br/>
-		<button type="button" id='StartGame' onclick="startGame();">Start Game</button> 
+		<button type="button" id='StartGame' onclick="startGame();">ReadyUp</button> 
 		<input type='text' id='message' name='message' />
 	</div>
 </body>
