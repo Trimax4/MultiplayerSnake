@@ -20,8 +20,8 @@ std::string Player2ID;
 int clientIDPlayer2 = 1;
 bool isSecondClient = true;
 
-bool isPlayer1Ready = false;
-bool isPlayer2Ready = false;
+bool p1Ready = false;
+bool p2Ready = false;
 
 std::vector<std::pair<int, int>> snake_array1;
 std::vector<std::pair<int, int>> snake_array2;
@@ -65,12 +65,15 @@ void openHandler(int clientID) {
 		cout << "client 1 id set" << endl;
 		clientIDPlayer1 = clientID;
 		isFirstClient = false;
+		// send clientID back to user for use in READY button
+		server.wsSend(clientIDPlayer1, "ID" + std::to_string(clientIDPlayer1));
 	}
 	else if (isFirstClient == false)
 	{
 		cout << "client 2 id set" << endl;
 		clientIDPlayer2 = clientID;
 		isSecondClient = false;
+		server.wsSend(clientIDPlayer2, "ID" + std::to_string(clientIDPlayer2));
 	}
 	else if (isSecondClient == false && isFirstClient == false)
 	{
@@ -80,26 +83,7 @@ void openHandler(int clientID) {
 	server.wsSend(clientID, "Welcome!");
 	vector<int> clientIDs = server.getClientIDs();
 	for (int i = 0; i < clientIDs.size(); i++) {
-		if (clientIDs[i] != clientID)
-			server.wsSend(clientIDs[i], os.str());
-	}
-}
-
-void readyUp(int clientID)
-{
-	ostringstream os;
-	os << "Player " << clientID << " is Ready.";
-	if (clientID == clientIDPlayer1 && isPlayer1Ready == false)
-	{
-		isPlayer1Ready = true;
-	}
-	else if (clientID == clientIDPlayer2 && isPlayer2Ready == false)
-	{
-		isPlayer2Ready = true;
-	}
-	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++) {
-		if (clientIDs[i] != clientID)
+		if (clientIDs[i] != clientID)     // != ? seems like this should be ==
 			server.wsSend(clientIDs[i], os.str());
 	}
 }
@@ -133,8 +117,11 @@ void create_snake2()
 
 void create_food()
 {
-	food.first = round(rand()*(width - cellWidth) / cellWidth);
-	food.second = round(rand()*(height - cellWidth) / cellWidth);
+	food.first = round(rand()%(width - cellWidth) / cellWidth);
+	food.second = round(rand()%(height - cellWidth) / cellWidth);
+	// create string to be interpreted by html script: "FOOD x,y"
+	std::string foodLoc = "FOOD" + std::to_string(food.first) + "," + std::to_string(food.second) + ".";
+	sendToAll(foodLoc);
 	//This will create a cell with x/y between 0-44
 	//Because there are 45(450/10) positions accross the rows and columns
 }
@@ -142,7 +129,7 @@ void create_food()
 /* called when a client disconnects */
 void closeHandler(int clientID){
     ostringstream os;
-    os << "Player " << clientID << " has leaved.";
+    os << "Player " << clientID << " has le.";
 
     vector<int> clientIDs = server.getClientIDs();
     for (int i = 0; i < clientIDs.size(); i++){
@@ -255,16 +242,28 @@ bool gameOverChecker()
 	return false;
 }
 
+// all players have clicked on the Ready button
+bool allPlayersReady() {
+	return p1Ready && p2Ready;
+}
+
+void gameOver() {
+	if (gameOverChecker()) {
+		// stop snakes
+		p1Ready = false;
+		p2Ready = false;
+		sendToAll("GAMEOVER " + std::to_string(player1Score) + "," + std::to_string(player2Score));
+	}
+}
+
 /* called when a client sends a message to the server */
 void messageHandler(int clientID, string message){
 	ostringstream os;
-	os << clientID << "Message in " << message << endl;
+	cout << clientID << "Message in " << message << endl;
 	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++) {
-		//if (clientIDs[i] != clientID)
-			server.wsSend(clientIDs[i], os.str());
-	}
 	cout << clientID  << "    < = current client || " << clientIDPlayer1 << " < player 1 ID and player 2 id > " << clientIDPlayer2 << endl;
+
+
 
 	if (clientID == clientIDPlayer1)
 	{
@@ -308,6 +307,25 @@ void messageHandler(int clientID, string message){
 			//os << "Player 1 ID = " + Player1ID.erase(0, 3) << endl;
 			sendToAll(clientID, Player2ID);
 		}
+
+		if (message.compare("READY") == 0) {
+			if (clientID == 0) {
+				p1Ready = true;
+				cout << clientID << "players 1 ready" << endl;
+			}
+			else
+			{
+				p2Ready = true;
+				cout << clientID << "players 2 ready" << endl;
+			}
+			if (allPlayersReady() == true)
+			{
+				cout << clientID << "players all ready"<< endl;
+				create_food();
+				sendToAll("START");
+				cout << clientID << "GAME STARTED" << endl;
+			}
+		}
 	}
 	
 		//vector<int> clientIDs = server.getClientIDs();
@@ -316,6 +334,8 @@ void messageHandler(int clientID, string message){
 				server.wsSend(clientIDs[i], os.str());
 		}
 }
+
+
 
 
 /* called once per select() loop */

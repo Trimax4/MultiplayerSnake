@@ -25,7 +25,10 @@
 		var Game = new snakeApplication();
 		var player1Name;
 		var player2Name;
+		var player1Ready = false;
+		var player2Ready = false;
 		//Game.init();
+		var playerID;
 
 		function log( text ) {
 			$log = $('#log');
@@ -123,6 +126,48 @@
 						var direction = payload.replace('P2D','');
 						Game.setSnake2Direction(direction);
 					}
+				else if(payload.substring(0, 4) == 'FOOD')
+				{
+					log(payload + "FOOD");
+					var location = payload.replace('FOOD', '');
+					log(location);
+					var commaLocation = location.indexOf(',');
+					var foodX = location.substring(0,commaLocation);
+					var periodLocation = location.indexOf('.');
+					var foodY = location.substring(commaLocation+1, periodLocation);
+					log(foodX + "<== x and y ==> " + foodY);
+					Game.setFoodLocation(foodX, foodY);
+				}
+				else if(payload.substring(0) == 'START')
+				{
+					Game.init();
+				}
+				else if(payload.substring(0, 8) == 'GAMEOVER')
+				{
+					log(payload);
+					var scores = payload.replace('GAMEOVER ', '');
+					var commaLocation = scores.indexOf(',');
+					var p1Score = parseInt(scores.substring(0, commaLocation));
+					var p2Score = parseInt(scores.substring(commaLocation + 1));
+					if(p1Score > p2Score){
+						log("Player 1 Wins!");
+					}
+					else if (p1Score < p2Score){
+						log("Player 2 Wins!");
+					}
+					else{
+						log("It's a Tie!");
+					}
+					Game.endGame();
+					//document.getElementById("StartGame").disabled = false;
+				}
+				else if(payload.substring(0,2) == 'ID')
+				{
+					var pID = payload.replace('ID', '');
+					playerID = parseInt(pID);
+					log('playerID: ' + playerID);
+				}
+
 			});
 
 			Server.connect();
@@ -142,7 +187,8 @@
 
         function startGame()
         {
-        	Game.init();
+        	send('READY'); 
+        	log('Ready: ' + playerID);
         }
 
 	</script>

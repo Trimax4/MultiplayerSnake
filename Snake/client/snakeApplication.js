@@ -26,7 +26,8 @@ var snakeApplication = function(){
 		d2 = "down";
 		this.create_snake();
 		this.create_snake2();
-		create_food(); //Now we can see the food particle
+		//create_food(); //Now we can see the food particle
+		//window.alert("food location" + food.x + " <-- x and y --> " + food.y);
 		//finally lets display the score
 		score = 0;
 		score2 = 0;
@@ -39,7 +40,7 @@ var snakeApplication = function(){
 	
 	this.create_snake = function()
 	{
-		var length = 15; //Length of the snake
+		var length = 5; //Length of the snake
 		snake_array = []; //Empty array to start with
 		for(var i = length-1; i>=0; i--)
 		{
@@ -234,7 +235,7 @@ var snakeApplication = function(){
 		}
 
 		//Lets paint the food
-		paint_cell_yellow(food.x, food.y);
+		paint_cell_black(food.x, food.y);
 		//Lets paint the score
 		var score_text =  Player1Name + " Score: " + score;
 		var score_text2 = Player2Name + " Score: " + score2;
@@ -258,9 +259,9 @@ var snakeApplication = function(){
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cw, y*cw, cw, cw);
 	}
-	function paint_cell_yellow (x, y)
+	function paint_cell_black (x, y)
 	{
-		ctx.fillStyle = "yellow";
+		ctx.fillStyle = "black";
 		ctx.fillRect(x*cw, y*cw, cw, cw);
 		ctx.strokeStyle = "white";
 		ctx.strokeRect(x*cw, y*cw, cw, cw);
