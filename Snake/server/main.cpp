@@ -20,6 +20,8 @@ std::string Player2ID;
 int clientIDPlayer2 = 1;
 bool isSecondClient = true;
 
+bool gameStart = false;
+
 bool p1Ready = false;
 bool p2Ready = false;
 
@@ -29,7 +31,7 @@ std::vector<std::pair<int, int>> snake_array2;
 int width = 450;
 int height = 450;
 int cellWidth = 10;
-int nx, ny, nx2, ny2;
+int nx = 10, ny = 10, nx2 = 40, ny2 = 40;
 int length = 5;
 string direction;
 string direction2;
@@ -98,6 +100,7 @@ void create_snake1()
 		position.second = i;
 		snake_array1.push_back(position);
 	}
+	direction = "down";
 	nx = snake_array1[0].first;
 	ny = snake_array1[0].second;
 }
@@ -111,14 +114,16 @@ void create_snake2()
 		position.second = i;
 		snake_array2.push_back(position);
 	}
+	direction2 = "down";
 	nx2 = snake_array2[0].first;
 	ny2 = snake_array2[0].second;
 }
 
 void create_food()
 {
-	food.first = round(rand()%(width - cellWidth) / cellWidth);
-	food.second = round(rand()%(height - cellWidth) / cellWidth);
+	cout << "FOOD CREATED" << endl;
+	food.first = round(rand()%((width - cellWidth) / cellWidth));
+	food.second = round(rand()%((height - cellWidth) / cellWidth));
 	// create string to be interpreted by html script: "FOOD x,y"
 	std::string foodLoc = "FOOD" + std::to_string(food.first) + "," + std::to_string(food.second) + ".";
 	sendToAll(foodLoc);
@@ -140,23 +145,30 @@ void closeHandler(int clientID){
 
 void snakeMovementLoop()
 {
-	if (direction.compare ("right")) nx++;
-	else if (direction.compare( "left")) nx--;
-	else if (direction.compare( "up")) ny--;
-	else if (direction.compare("down")) ny++ ;
+	if (direction.compare ("right") == 0) nx++;
+	else if (direction.compare( "left") == 0) nx--;
+	else if (direction.compare( "up") == 0) ny--;
+	else if (direction.compare("down") == 0) ny++ ;
 
-	if (direction2.compare("right")) nx2++;
-	else if (direction2.compare("left")) nx2--;
-	else if (direction2.compare("up")) ny2--;
-	else if (direction2.compare("down")) ny2++;
+	if (direction2.compare("right") == 0) nx2++;
+	else if (direction2.compare("left") == 0) nx2--;
+	else if (direction2.compare("up") == 0) ny2--;
+	else if (direction2.compare("down") == 0) ny2++;
 }
-
+void updateScore()
+{
+		std::string scoreUpdate = "SCORED" + std::to_string(player1Score) + "," + std::to_string(player2Score) + ".";
+		sendToAll(scoreUpdate);
+		cout << "score updated" << endl;
+}
 void foodCollisionCheck()
 {
 	//Lets write the code to make the snake eat the food
 	//The logic is simple
 	//If the new head position matches with that of the food,
 	//Create a new head instead of moving the tail
+	cout << "(" + std::to_string(nx) + "," + std::to_string(ny) + ") <-- player 1 location" << endl;
+	cout << "(" + std::to_string(nx2) + "," + std::to_string(ny2) + ") <-- player 2 location" << endl;
 	if (nx == food.first && ny == food.second)
 	{
 		std::pair<int, int> tail;
@@ -164,7 +176,8 @@ void foodCollisionCheck()
 		tail.second = ny;
 		player1Score++;
 		//Create new food
-		create_food();
+		updateScore();
+		create_food();	
 	}
 	else
 	{
@@ -179,6 +192,7 @@ void foodCollisionCheck()
 		tail2.second = ny2;
 		player2Score++;
 		//Create new food
+		updateScore();
 		create_food();
 	}
 	else
@@ -189,15 +203,16 @@ void foodCollisionCheck()
 	}
 	//The snake can now eat the food.
 
-	snake_array1.insert(snake_array1.begin(),tail); //puts back the tail as the first cell
+	snake_array1.insert(snake_array1.begin(), tail); //puts back the tail as the first cell
 	snake_array2.insert(snake_array2.begin(), tail2);
 }
 
 bool check_collision(int x, int y, std::vector<std::pair<int, int>> array)
 {
+	cout << "collsion check funct set off" << endl;
 	//This function will check if the provided x/y coordinates exist
 	//in an array of cells or not
-	for (int i = 0; i < array.size(); i++)
+	for (int i = 1; i < array.size(); i++)
 	{
 		if (array[i].first == x && array[i].second == y)
 		{
@@ -225,18 +240,20 @@ bool check_collision_array(std::vector<std::pair<int, int>> array, std::vector<s
 
 bool gameOverChecker()
 {
-	vector<int> clientIDs = server.getClientIDs();
 
-	if (nx == -1 || nx == width / cellWidth || ny == -1 || ny == height / cellWidth || check_collision(nx, ny, snake_array1))
+	if (nx == -1 || nx == (width / cellWidth) || ny == -1 || ny == (height / cellWidth) || check_collision(nx, ny, snake_array1))
 	{
+		cout << "GAMEOVER snake 1 fault" << endl;
 		return true;
 	}
-	if (nx2 == -1 || nx2 == width / cellWidth || ny2 == -1 || ny2 == height / cellWidth || check_collision(nx2, ny2, snake_array2))
+	if (nx2 == -1 || nx2 == (width / cellWidth) || ny2 == -1 || ny2 == (height / cellWidth) || check_collision(nx2, ny2, snake_array2))
 	{
+		cout << "GAMEOVER snake 2 fault" << endl;
 		return true;
 	}
 	if (check_collision_array(snake_array1, snake_array2))
 	{
+		cout << "GAMEOVER snakes collided" << endl;
 		return true;
 	}
 	return false;
@@ -248,11 +265,16 @@ bool allPlayersReady() {
 }
 
 void gameOver() {
-	if (gameOverChecker()) {
+	if (gameOverChecker() == true) {
 		// stop snakes
 		p1Ready = false;
 		p2Ready = false;
+		
 		sendToAll("GAMEOVER " + std::to_string(player1Score) + "," + std::to_string(player2Score));
+		create_food();
+		create_snake1();
+		create_snake2();
+		sendToAll("START");
 	}
 }
 
@@ -261,32 +283,55 @@ void messageHandler(int clientID, string message){
 	ostringstream os;
 	cout << clientID << "Message in " << message << endl;
 	vector<int> clientIDs = server.getClientIDs();
-	cout << clientID  << "    < = current client || " << clientIDPlayer1 << " < player 1 ID and player 2 id > " << clientIDPlayer2 << endl;
+	//cout << clientID  << "    < = current client || " << clientIDPlayer1 << " < player 1 ID and player 2 id > " << clientIDPlayer2 << endl;
 
 
 
 	if (clientID == clientIDPlayer1)
 	{
 		os << "direction change p1" << endl ;
-		if ((message.compare("left") == 0 && direction.compare("right") != 0) || 
-			(message.compare("down") == 0 && direction.compare("up") != 0) || 
-			(message.compare("up") == 0 && direction.compare("down") != 0) || 
-			(message.compare("right") == 0) && direction.compare("left") != 0)
+		if (message.compare("left") == 0 && direction.compare("right") != 0)
 		{
-			direction2 = message;
+			direction = message;
+			sendToAll(clientID, "P1D" + message);
+		}
+		else if (message.compare("down") == 0 && direction.compare("up") != 0)
+		{
+			direction = message;
+			sendToAll(clientID, "P1D" + message);
+		}
+		else if (message.compare("up") == 0 && direction.compare("down") != 0)
+		{
+			direction = message;
+			sendToAll(clientID, "P1D" + message);
+		}
+		else if(message.compare("right") == 0 && direction.compare("left") != 0)
+		{
+			direction = message;
 			sendToAll(clientID, "P1D" + message);
 		}
 	}
 	else if (clientID == clientIDPlayer2)
 	{
 		os << "direction change p2" << endl;
-		if ((message.compare("left") == 0 && direction.compare("right") != 0) ||
-			(message.compare("down") == 0 && direction.compare("up") != 0) ||
-			(message.compare("up") == 0 && direction.compare("down") != 0) ||
-			(message.compare("right") == 0) && direction.compare("left") != 0)
+		if (message.compare("left") == 0 && direction2.compare("right") != 0)
 		{
 			direction2 = message;
-
+			sendToAll(clientID, "P2D" + message);
+		}
+		else if (message.compare("down") == 0 && direction2.compare("up") != 0)
+		{
+			direction2 = message;
+			sendToAll(clientID, "P2D" + message);
+		}
+		else if (message.compare("up") == 0 && direction2.compare("down") != 0)
+		{
+			direction2 = message;
+			sendToAll(clientID, "P2D" + message);
+		}
+		else if (message.compare("right") == 0 && direction2.compare("left") != 0)
+		{
+			direction2 = message;
 			sendToAll(clientID, "P2D" + message);
 		}
 	}
@@ -322,7 +367,10 @@ void messageHandler(int clientID, string message){
 			{
 				cout << clientID << "players all ready"<< endl;
 				create_food();
+				create_snake1();
+				create_snake2();
 				sendToAll("START");
+				gameStart = true;
 				cout << clientID << "GAME STARTED" << endl;
 			}
 		}
@@ -337,22 +385,27 @@ void messageHandler(int clientID, string message){
 
 
 
-
+//time(NULL)+10
 /* called once per select() loop */
 void periodicHandler(){
-    static time_t next = time(NULL) + 10;
+    static time_t next = time(NULL) + 1;
     time_t current = time(NULL);
     if (current >= next){
         ostringstream os;
         string timestring = ctime(&current);
         timestring = timestring.substr(0, timestring.size() - 1);
         os << timestring;
+		//looks for game over
+		if (gameStart == true)
+		{
+			gameOver();
+			sendToAll("PAINT");
+			snakeMovementLoop();
+			foodCollisionCheck();
+		}
+		
 
-        vector<int> clientIDs = server.getClientIDs();
-        for (int i = 0; i < clientIDs.size(); i++)
-            server.wsSend(clientIDs[i], os.str());
-
-        next = time(NULL) + 10;
+        next = time(NULL) + 1;
     }
 
 }
@@ -368,7 +421,7 @@ int main(int argc, char *argv[]){
     server.setCloseHandler(closeHandler);
     server.setMessageHandler(messageHandler);
 	
-    //server.setPeriodicHandler(periodicHandler);
+    server.setPeriodicHandler(periodicHandler);
 
     /* start the chatroom server, listen to ip '127.0.0.1' and port '8000' */
     server.startServer(port);

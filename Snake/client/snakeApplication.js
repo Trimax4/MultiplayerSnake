@@ -34,10 +34,10 @@ var snakeApplication = function(){
 		
 		//Lets move the snake now using a timer which will trigger the paint function
 		//every 60ms
-		if(typeof game_loop != "undefined") clearInterval(game_loop);
-		game_loop = setInterval(this.paint, 200);
+		//if(typeof game_loop != "undefined") clearInterval(game_loop);
+		//game_loop = setInterval(this.paint, 200);
 	}
-	
+
 	this.create_snake = function()
 	{
 		var length = 5; //Length of the snake
@@ -102,6 +102,11 @@ var snakeApplication = function(){
 	this.setPlayer2Score = function(new_score)
 	{
 		score2 = new_score;
+	}
+	this.setScore = function(player1Score, player2Score)
+	{
+		score = player1Score;
+		score2 = player2Score;
 	}
 
 	this.endGame = function()

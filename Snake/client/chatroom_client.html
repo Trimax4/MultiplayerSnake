@@ -106,16 +106,14 @@
 						//log(payload +" IDSET");
 						player1Name = payload.replace('1ID','');
 						document.getElementById('p1ID').value = player1Name;
-
-						Game.setPlayer1Name(payload.replace(player1Name));
+						Game.setPlayer1Name(player1Name);
 					}
 				else if(payload.substring(0, 3) == '2ID')
 					{
 						//log(payload +" IDSET");
 						player2Name = payload.replace('2ID','');
 						document.getElementById('p2ID').value = player2Name;
-
-						Game.setPlayer2Name(payload.replace(player2Name));
+						Game.setPlayer2Name(player2Name);
 					}
 				else if(payload.substring(0, 3) == 'P1D')
 					{
@@ -169,6 +167,22 @@
 					var pID = payload.replace('ID', '');
 					playerID = parseInt(pID);
 					log('playerID: ' + playerID);
+				}
+				else if(payload.substring(0,6) == 'SCORED')
+				{
+					log(payload + "SCORED");
+					var location = payload.replace('SCORED', '');
+					log(location);
+					var commaLocation = location.indexOf(',');
+					var player1Score = location.substring(0,commaLocation);
+					var periodLocation = location.indexOf('.');
+					var player2Score = location.substring(commaLocation+1, periodLocation);
+					log(player1Score + "<== 1 score and 2 score ==> " + player2Score);
+					Game.setScore(player1Score, player2Score);
+				}
+				else if(payload.substring(0,5) == 'PAINT')
+				{
+					Game.paint();
 				}
 
 			});
