@@ -273,6 +273,8 @@ void gameOver() {
 		sendToAll("GAMEOVER " + std::to_string(player1Score) + "," + std::to_string(player2Score));
 		snake_array1.clear();
 		snake_array2.clear();
+		player1Score = 0;
+		player2Score = 0;
 		create_food();
 		create_snake1();
 		create_snake2();
