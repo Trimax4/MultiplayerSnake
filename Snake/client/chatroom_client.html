@@ -146,6 +146,7 @@
 				else if(payload.substring(0, 8) == 'GAMEOVER')
 				{
 					log(payload);
+					Game.addPicture();
 					var scores = payload.replace('GAMEOVER ', '');
 					var commaLocation = scores.indexOf(',');
 					var p1Score = parseInt(scores.substring(0, commaLocation));

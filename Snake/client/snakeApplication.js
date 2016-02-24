@@ -133,6 +133,26 @@ var snakeApplication = function(){
 	{
 		return h;
 	}
+		this.addPicture = function()
+	{
+          var img = document.createElement("img");
+          img.src = "game_over.jpg"; 
+          // image sourced from entertainmentlawbrazil.com.br
+          img.height = 450; 
+          img.width = 450;
+
+          //optionally set a css class on the image
+          //var class_name = "foo";
+          //img.setAttribute("class", class_name);
+
+          ctx.drawImage(img, 0, 0)
+	}
+
+	this.removePicture = function()
+	{
+		img = null;
+		ctx.removeImage(img);
+	}
 
 
 	//Lets paint the snake now
