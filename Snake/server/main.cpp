@@ -5,10 +5,15 @@
 #include <sstream>
 #include <time.h>
 #include <math.h>
+#include <thread>
+#include <chrono>
 #include "websocket.h"
 
 using namespace std;
+using namespace chrono;
 
+bool latencyOn = true;
+int latencyMax = 1000;
 
 
 int player1Score = 0;
@@ -41,20 +46,59 @@ std::pair<int, int> tail2;
 
 webSocket server;
 
+void latency(unsigned int ms)
+{
+	std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+}
+
 void sendToAll(int clientID, string message)
 {
-	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++) {
-		//if (clientIDs[i] != clientID)
-			server.wsSend(clientIDs[i], message);
+	if (latencyOn == true)
+	{	
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			int random = rand() % latencyMax;
+			latency(random);
+			std::stringstream timestamp;
+			milliseconds ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
+			long k = ms.count();
+			timestamp << k;
+			server.wsSend(clientIDs[i], "TIME" + timestamp.str() + ":" + message);
+		}
 	}
+	else
+	{
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			//if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], message);
+		}
+	}
+
+		
 }
 void sendToAll(string message)
 {
-	vector<int> clientIDs = server.getClientIDs();
-	for (int i = 0; i < clientIDs.size(); i++) {
-		//if (clientIDs[i] != clientID)
-		server.wsSend(clientIDs[i], message);
+	if (latencyOn == true)
+	{
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			int random = rand() % latencyMax;
+			latency(random);
+			std::stringstream timestamp;
+			milliseconds ms = duration_cast< milliseconds >(system_clock::now().time_since_epoch());
+			long k = ms.count();
+			timestamp << k;
+			server.wsSend(clientIDs[i], "TIME" + timestamp.str() + ":" + message);
+		}
+	}
+	else
+	{
+		vector<int> clientIDs = server.getClientIDs();
+		for (int i = 0; i < clientIDs.size(); i++) {
+			//if (clientIDs[i] != clientID)
+			server.wsSend(clientIDs[i], message);
+		}
 	}
 }
 /* called when a client connects */
@@ -209,7 +253,7 @@ void foodCollisionCheck()
 
 bool check_collision(int x, int y, std::vector<std::pair<int, int>> array)
 {
-	cout << "collsion check funct set off" << endl;
+	//cout << "collsion check funct set off" << endl;
 	//This function will check if the provided x/y coordinates exist
 	//in an array of cells or not
 	for (int i = 1; i < array.size(); i++)
@@ -289,6 +333,10 @@ void messageHandler(int clientID, string message){
 	vector<int> clientIDs = server.getClientIDs();
 	//cout << clientID  << "    < = current client || " << clientIDPlayer1 << " < player 1 ID and player 2 id > " << clientIDPlayer2 << endl;
 
+
+	///
+	///SEND TO ALL CONTAINS ARTIFICAL LATENCY
+	///
 
 
 	if (clientID == clientIDPlayer1)
@@ -380,11 +428,6 @@ void messageHandler(int clientID, string message){
 		}
 	}
 	
-		//vector<int> clientIDs = server.getClientIDs();
-		for (int i = 0; i < clientIDs.size(); i++) {
-			//if (clientIDs[i] != clientID)
-				server.wsSend(clientIDs[i], os.str());
-		}
 }
 
 

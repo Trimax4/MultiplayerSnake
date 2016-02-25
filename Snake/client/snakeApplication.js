@@ -14,12 +14,12 @@ var snakeApplication = function(){
 	var score2;
 	var Player1Name = "Player1";
 	var Player2Name = "Player2";
+	var latency = 0;
 
 	//Lets create the snake now
 	var snake_array; //an array of cells to make up the snake
 	var snake_array2;
 	
-
 	this.init = function()
 	{
 		d = "down"; //default direction
@@ -71,6 +71,10 @@ var snakeApplication = function(){
 		//Because there are 45(450/10) positions accross the rows and columns
 	}
 	
+	this.setLatency = function(ms)
+	{
+		latency = ms;
+	}
 	this.setFoodLocation = function(x, y)
 	{
 		food = {x,y};
@@ -133,6 +137,8 @@ var snakeApplication = function(){
 	{
 		return h;
 	}
+	
+
 		this.addPicture = function()
 	{
           var img = document.createElement("img");
@@ -264,9 +270,11 @@ var snakeApplication = function(){
 		//Lets paint the score
 		var score_text =  Player1Name + " Score: " + score;
 		var score_text2 = Player2Name + " Score: " + score2;
+		var latencyText = "Ping: " + latency;
 		ctx.fillStyle = "black";
 		ctx.fillText(score_text, 5, h-5);
 		ctx.fillText(score_text2, 100, h-5);
+		ctx.fillText(latencyText, 300, h-5);
 	}
 	
 	//Lets first create a generic function to paint cells

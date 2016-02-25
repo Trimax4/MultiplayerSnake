@@ -45,6 +45,8 @@
 			Server.send( 'message', text );
 		}
 
+
+
         function connect(){
             log('Connecting...');
 			Server = new FancyWebSocket('ws://' + document.getElementById('ip').value + ':' + document.getElementById('port').value);
@@ -97,10 +99,33 @@
 			});
 
 			Server.bind('message', function( payload ) {
-				//log(payload.substring(0, 2));
-				//log(payload.substring(2, 3));
-				//log(payload.substring(4, 5));
-				//log("Logged" + payload + "Logged" + " sub -> " + payload.substring(0, 3) + "<--string");
+				//timestamp register
+				//log(payload);
+				var timeRemover = payload;
+				if(timeRemover.substring(0, 4) == 'TIME')
+				{
+					//log("removing time");
+					timeRemover = timeRemover.replace("TIME", '');
+					var timeIncoming = parseFloat(timeRemover) + "<br>";
+					var colonLocation = timeRemover.indexOf(':');
+					timeRemover = timeRemover.substring(colonLocation+1, timeRemover.length);
+					var d = new Date();
+					
+
+					var setTimeLength = d.getTime() +"";
+					var cutTime = setTimeLength.substring(4,13);
+
+					log("java time --- " + cutTime + "       time incoming ---> " + timeIncoming);
+					var currentTime = parseFloat(cutTime)+"<br>"; 
+					log(currentTime + "currentTime");
+					var rawLatency =  parseFloat(timeIncoming) - parseFloat(currentTime) + "";
+					var cutLatency = rawLatency.substring(5,7);
+					Game.setLatency(parseInt(cutLatency));
+				}
+				//log("time removeal complete");
+
+				payload = timeRemover;
+				//log("new Payload _>>>> " + payload)
 				if(payload.substring(0, 3) == '1ID')
 					{
 						//log(payload +" IDSET");
@@ -141,6 +166,7 @@
 				}
 				else if(payload.substring(0) == 'START')
 				{
+					log("GAME START");
 					Game.init();
 				}
 				else if(payload.substring(0, 8) == 'GAMEOVER')
