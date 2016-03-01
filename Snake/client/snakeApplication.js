@@ -35,7 +35,12 @@ var snakeApplication = function(){
 		//Lets move the snake now using a timer which will trigger the paint function
 		//every 60ms
 		//if(typeof game_loop != "undefined") clearInterval(game_loop);
-		//game_loop = setInterval(this.paint, 200);
+		//game_loop = setInterval(this.timeCheck, 60);
+	}
+
+	this.timecheck = function()
+	{
+
 	}
 
 	this.create_snake = function()

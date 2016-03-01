@@ -13,7 +13,7 @@ using namespace std;
 using namespace chrono;
 
 bool latencyOn = true;
-int latencyMax = 1000;
+int latencyMax = 500;
 
 
 int player1Score = 0;
@@ -30,6 +30,9 @@ bool gameStart = false;
 
 bool p1Ready = false;
 bool p2Ready = false;
+
+bool P1interPaint = false;
+bool P2interPaint = false;
 
 std::vector<std::pair<int, int>> snake_array1;
 std::vector<std::pair<int, int>> snake_array2;
@@ -188,7 +191,9 @@ void create_food()
 	//This will create a cell with x/y between 0-44
 	//Because there are 45(450/10) positions accross the rows and columns
 }
-
+bool allPlayersReady() {
+	return p1Ready && p2Ready;
+}
 /* called when a client disconnects */
 void closeHandler(int clientID){
     ostringstream os;
@@ -226,9 +231,7 @@ void closeHandler(int clientID){
 		cout << clientID << "GAME STARTED" << endl;
 	}
 }
-bool allPlayersReady() {
-	return p1Ready && p2Ready;
-}
+
 
 void snakeMovementLoop()
 {
@@ -346,10 +349,6 @@ bool gameOverChecker()
 	return false;
 }
 
-// all players have clicked on the Ready button
-bool allPlayersReady() {
-	return p1Ready && p2Ready;
-}
 
 void gameOver() {
 	if (gameOverChecker() == true) {
@@ -384,6 +383,12 @@ void messageHandler(int clientID, string message){
 
 	if (clientID == clientIDPlayer1)
 	{
+		if (message.compare("interPaint") == 0)
+		{
+			P1interPaint = true;
+		}
+
+
 		os << "direction change p1" << endl ;
 		if (message.compare("left") == 0 && direction.compare("right") != 0)
 		{
@@ -408,6 +413,11 @@ void messageHandler(int clientID, string message){
 	}
 	else if (clientID == clientIDPlayer2)
 	{
+		if (message.compare("interPaint") == 0)
+		{
+			P2interPaint = true;
+		}
+
 		os << "direction change p2" << endl;
 		if (message.compare("left") == 0 && direction2.compare("right") != 0)
 		{
@@ -470,7 +480,13 @@ void messageHandler(int clientID, string message){
 			}
 		}
 	}
-	
+	if (P1interPaint == true && P2interPaint == true)
+	{
+		snakeMovementLoop();
+		foodCollisionCheck();
+		P1interPaint = false;
+		P2interPaint = false;
+	}
 }
 
 
@@ -478,7 +494,7 @@ void messageHandler(int clientID, string message){
 //time(NULL)+10
 /* called once per select() loop */
 void periodicHandler(){
-    static time_t next = time(NULL) + 1;
+    static time_t next = time(NULL) + .1f;
     time_t current = time(NULL);
     if (current >= next){
         ostringstream os;
@@ -495,7 +511,7 @@ void periodicHandler(){
 		}
 		
 
-        next = time(NULL) + 1;
+        next = time(NULL) + .1f;
     }
 
 }

@@ -28,6 +28,11 @@
 		var player1Ready = false;
 		var player2Ready = false;
 		var connected = false;
+		var latencyAsFloat = 0;
+		var paintTime = 0;
+		var funct;
+		var interpolated = true;
+
 		//Game.init();
 		var playerID;
 
@@ -115,11 +120,23 @@
 					var setTimeLength = d.getTime() +"";
 					var cutTime = setTimeLength.substring(4,13);
 
-					log("java time --- " + cutTime + "       time incoming ---> " + timeIncoming);
+					//log("java time --- " + cutTime + "       time incoming ---> " + timeIncoming);
 					var currentTime = parseFloat(cutTime)+"<br>"; 
-					log(currentTime + "currentTime");
+					//log(currentTime + "currentTime");
+					latencyAsFloat = parseFloat(timeIncoming) - parseFloat(currentTime);
+					log("LATENCY AS FLOAT " + latencyAsFloat);
+					log("currentTime " + currentTime);
+					var cTime = parseInt(currentTime);
+
+					var cutLatTime = setTimeLength.substring(5,7);
+					var latTime = parseInt(cutLatTime/6);
+					paintTime =  cTime + latTime; 
+					log("PaintTIme " + paintTime);
+
+
 					var rawLatency =  parseFloat(timeIncoming) - parseFloat(currentTime) + "";
 					var cutLatency = rawLatency.substring(5,7);
+					interpolated = false;
 					Game.setLatency(parseInt(cutLatency));
 				}
 				//log("time removeal complete");
@@ -228,6 +245,29 @@
 			Server.connect();
         }
 
+        function latFixStart()
+        {				
+			funct = setInterval(latFix, 1);
+        }
+
+        function latFix()
+        {				
+			var d = new Date();
+			var setTimeLength = d.getTime() +"";
+			var cutTime = setTimeLength.substring(4,13);
+			var currentTime = parseFloat(cutTime)+"<br>";
+			//log(currentTime + "<----current time and paint time---->" + paintTime);
+			if(currentTime > paintTime && inpterpolated == false)
+			{
+				Game.paint();
+				latencyPredictionMoveTaken == true;
+				log("interpainted");
+				send("interPaint");
+				interpolated = true;
+			}
+        }
+		
+
         function setPlayer1ID()
         {
         	send("1ID"+document.getElementById('p1ID').value);
@@ -246,6 +286,7 @@
         	{
         		send('READY'); 
         		log('Ready: ' + playerID);
+        		latFixStart();
         	}
         	else
         	{
