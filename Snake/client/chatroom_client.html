@@ -194,6 +194,17 @@
 					var pID = payload.replace('ID', '');
 					playerID = parseInt(pID);
 					log('playerID: ' + playerID);
+					if(playerID >= 2)
+					{
+						log('Game Full');
+						Server.disconnect();
+					}
+				}
+				else if(payload.substring(0,10) == 'NUMPLAYERS')
+				{
+					var num = payload.replace('NUMPLAYERS', '');
+					numPlay = parseInt(num);
+					log('numPlay' + numPlay);
 				}
 				else if(payload.substring(0,6) == 'SCORED')
 				{

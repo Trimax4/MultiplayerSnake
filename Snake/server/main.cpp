@@ -24,7 +24,8 @@ bool isFirstClient = true;
 std::string Player2ID;
 int clientIDPlayer2 = 1;
 bool isSecondClient = true;
-
+int clientIDPlayer3 = 2;
+int numPlayers = 0;
 bool gameStart = false;
 
 bool p1Ready = false;
@@ -113,6 +114,7 @@ void openHandler(int clientID) {
 		isFirstClient = false;
 		// send clientID back to user for use in READY button
 		server.wsSend(clientIDPlayer1, "ID" + std::to_string(clientIDPlayer1));
+		numPlayers++;
 	}
 	else if (isFirstClient == false)
 	{
@@ -120,11 +122,23 @@ void openHandler(int clientID) {
 		clientIDPlayer2 = clientID;
 		isSecondClient = false;
 		server.wsSend(clientIDPlayer2, "ID" + std::to_string(clientIDPlayer2));
+		numPlayers++;
+	}
+	else if (isFirstClient == false && isSecondClient == true)
+	{
+		cout << "client 2 id set" << endl;
+		clientIDPlayer2 = clientID;
+		isSecondClient = false;
+		server.wsSend(clientIDPlayer2, "ID" + std::to_string(clientIDPlayer2));
+
+		numPlayers++;
 	}
 	else if (isSecondClient == false && isFirstClient == false)
 	{
 		os << "server full " << endl;
+		server.wsSend(2, "ID" + std::to_string(clientIDPlayer3));
 	}
+
 	
 	server.wsSend(clientID, "Welcome!");
 	vector<int> clientIDs = server.getClientIDs();
@@ -179,12 +193,41 @@ void create_food()
 void closeHandler(int clientID){
     ostringstream os;
     os << "Player " << clientID << " has le.";
-
+	numPlayers--;
     vector<int> clientIDs = server.getClientIDs();
     for (int i = 0; i < clientIDs.size(); i++){
         if (clientIDs[i] != clientID)
             server.wsSend(clientIDs[i], os.str());
     }
+	cout << "PLAYER HAS DISCONNECTED" << endl;
+	isSecondClient = true;
+	p1Ready = false;
+	p2Ready = false;
+	gameStart = false;
+	snake_array1.clear();
+	snake_array2.clear();
+
+
+	cout << "waiting for player to reconnect ..." << endl;
+
+
+	openHandler(clientID);
+	if (allPlayersReady() == true)
+	{
+		cout << "Reconnected!" << endl;
+		cout << clientID << "players all ready" << endl;
+		player1Score = 0;
+		player2Score = 0;
+		create_food();
+		create_snake1();
+		create_snake2();
+		sendToAll("START");
+		gameStart = true;
+		cout << clientID << "GAME STARTED" << endl;
+	}
+}
+bool allPlayersReady() {
+	return p1Ready && p2Ready;
 }
 
 void snakeMovementLoop()
