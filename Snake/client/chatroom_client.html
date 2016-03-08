@@ -32,6 +32,7 @@
 		var paintTime = 0;
 		var funct;
 		var interpolated = true;
+		var updatePaintTime = true;
 
 		//Game.init();
 		var playerID;
@@ -124,14 +125,20 @@
 					var currentTime = parseFloat(cutTime)+"<br>"; 
 					//log(currentTime + "currentTime");
 					latencyAsFloat = parseFloat(timeIncoming) - parseFloat(currentTime);
-					log("LATENCY AS FLOAT " + latencyAsFloat);
-					log("currentTime " + currentTime);
+					//log("LATENCY AS FLOAT " + latencyAsFloat);
+					//log("currentTime " + currentTime);
 					var cTime = parseInt(currentTime);
 
-					var cutLatTime = setTimeLength.substring(5,7);
-					var latTime = parseInt(cutLatTime/6);
-					paintTime =  cTime + latTime; 
-					log("PaintTIme " + paintTime);
+					if(updatePaintTime == true)
+					{
+						var cutLatTime = setTimeLength.substring(5,7);
+						var latTime = parseInt(Math.abs(100 - cutLatTime)/6);
+						log(latTime);
+						paintTime =  cTime + latTime;
+						updatePaintTime = false; 
+						log("PaintTIme " + paintTime);
+					}
+					
 
 
 					var rawLatency =  parseFloat(timeIncoming) - parseFloat(currentTime) + "";
@@ -261,9 +268,9 @@
 			{
 				Game.paint();
 				latencyPredictionMoveTaken == true;
-				log("interpainted");
 				send("interPaint");
 				interpolated = true;
+				updatePaintTime = true;
 			}
         }
 		
